@@ -2,7 +2,7 @@
 
 Welcome! This guide explains every file, so you can find and change things easily.
 
-## Folder structure
+## Folder structures
 
     mrinmoy-studio/
     ├── index.html          The page layout: all the text and where things sit
