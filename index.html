@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<!-- ============================================================
+  INDEX.HTML: the skeleton of the page.
+  Holds the text and the empty containers. Colours and layout are
+  in css/style.css, behaviour is in the js/ folder.
+  Open this file in a browser to see the site.
+============================================================ -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Mrinmoy’s Design Lab — CAD, design & simulation</title>
+
+  <!-- Fonts from Google Fonts -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+  <!-- Styling -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Background canvases (filled by js/background.js and js/navigation.js) -->
+  <canvas id="bg"></canvas>
+  <canvas id="fx"></canvas>
+
+  <!-- SVG filter used for the "dissolve" effect when changing pages. Don't edit. -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <filter id="dis" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency=".012" numOctaves="2" result="n"/>
+      <feDisplacementMap id="dmap" in="SourceGraphic" in2="n" scale="0" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </svg>
+
+  <!-- ========== PAGE 1: WELCOME ========== -->
+  <div class="page on set" id="welcome" style="display:block">
+    <div class="center">
+      <p class="hero-eyebrow">CAD <span>·</span> DESIGN <span>·</span> SIMULATION</p>
+      <h1>Mrinmoy’s<br><em>Design Lab</em></h1>
+      <p class="hero-intro">A hands-on space for CAD, 3D modelling, and simulation—turning ideas into thoughtful, testable designs. With a special interest in headphone, IEM, and speaker design.</p>
+      <button class="btn" data-go="menu">Explore the work <span aria-hidden="true">↗</span></button>
+      <p class="hero-footnote">IDEAS <span>→</span> MODELS <span>→</span> REAL-WORLD PERFORMANCE</p>
+    </div>
+  </div>
+
+  <!-- ========== PAGE 2: MENU ========== -->
+  <div class="page" id="menu">
+    <button class="back" data-go="welcome">Back</button>
+    <div class="center menu">
+      <button data-go="projects">Projects<small>CAD models, product concepts, and simulations</small></button>
+      <button data-go="journal">Journal<small>Design notes, model studies, and experiments</small></button>
+      <button data-go="about">About<small>My approach to design and engineering</small></button>
+      <button data-go="contact">Contact<small>Let’s talk about design, CAD, and ideas</small></button>
+    </div>
+  </div>
+
+  <!-- ========== PAGE 3: PROJECTS (screens are created by js/viewer.js) ========== -->
+  <div class="page" id="projects">
+    <button class="back" data-go="menu">Menu</button>
+    <nav class="project-dots" id="project-dots" aria-label="Project slides"></nav>
+    <div id="slides"></div>
+  </div>
+
+  <!-- ========== PAGE 4: JOURNAL ========== -->
+  <!-- To add a post, copy one <div class="post"> block and change the text. -->
+  <div class="page" id="journal">
+    <button class="back" data-go="menu">Menu</button>
+    <div class="center sub">
+      <p class="page-eyebrow">DESIGN LOG / 02</p>
+      <h2>Notes from the workshop</h2>
+      <p class="section-intro">Model studies, CAD experiments, and simulation notes—documenting the process from first sketch to refined design.</p>
+      <div class="post">
+        <b>Inside the model: IEM shell assembly</b>
+        <p class="mute">A closer look at the body, faceplate, and nozzle components in this CAD study.</p>
+      </div>
+      <div class="post">
+        <b>Designing with simulation in mind</b>
+        <p class="mute">Notes on using analysis to understand geometry and make better-informed design decisions.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== PAGE 5: ABOUT ========== -->
+  <div class="page" id="about">
+    <button class="back" data-go="menu">Menu</button>
+    <div class="center sub">
+      <p class="page-eyebrow">THE PERSON BEHIND THE MODELS / 03</p>
+      <h2>About</h2>
+      <p class="about-copy">I’m interested in how ideas become well-considered, working designs. I enjoy CAD, 3D modelling, and simulation as tools for exploring form, fit, and performance. I’m especially curious about headphone, IEM, and speaker design, and I’m also learning music production. This lab is a growing collection of projects, studies, and experiments.</p>
+    </div>
+  </div>
+
+  <!-- ========== PAGE 6: CONTACT ========== -->
+  <div class="page" id="contact">
+    <button class="back" data-go="menu">Menu</button>
+    <div class="center sub">
+      <p class="page-eyebrow">GOOD IDEAS START WITH A CONVERSATION / 04</p>
+      <h2>Get in touch</h2>
+      <p class="about-copy">Have an idea, a design question, or an interest in CAD and simulation? I’d be glad to connect. Contact links are coming soon.</p>
+    </div>
+  </div>
+
+  <!-- ========== PROJECT DETAIL PAGE (filled by js/panel.js) ========== -->
+  <section class="page detail-page" id="project-detail" aria-label="Project details">
+    <button class="back detail-back" data-go="projects">Back to projects</button>
+    <main id="project-detail-content"></main>
+  </section>
+
+  <!-- ========== SCRIPTS (loaded in this order; order matters) ========== -->
+  <!-- Three.js: the 3D library. Loaded from the internet. -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+
+  <script src="js/projects.js"></script>    <!-- 1. your project list (edit this!) -->
+  <script src="js/panel.js"></script>       <!-- 3. project details and downloads -->
+  <script src="js/viewer.js"></script>      <!-- 4. 3D viewers + project screens -->
+  <script src="js/navigation.js"></script>  <!-- 5. page changes and animations -->
+  <script src="js/background.js"></script>  <!-- 6. animated background dots -->
+</body>
+</html>
