@@ -21,7 +21,8 @@ function isWithinModelRadius(el, event) {
 // Creates one 3D viewer inside the element el, showing project p
 function makeView(el, p) {
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  let pixelRatio = Math.min(devicePixelRatio, matchMedia('(max-width: 760px)').matches ? 1.5 : 2);
+  renderer.setPixelRatio(pixelRatio);
   el.appendChild(renderer.domElement);
 
   const scene = new THREE.Scene();
@@ -139,6 +140,11 @@ function makeView(el, p) {
   const fit = () => {
     const w = el.clientWidth, h = el.clientHeight;
     if (!w || !h) return;
+    const nextPixelRatio = Math.min(devicePixelRatio, matchMedia('(max-width: 760px)').matches ? 1.5 : 2);
+    if (nextPixelRatio !== pixelRatio) {
+      pixelRatio = nextPixelRatio;
+      renderer.setPixelRatio(pixelRatio);
+    }
     renderer.setSize(w, h, false);
     cam.aspect = w / h;
     cam.updateProjectionMatrix();

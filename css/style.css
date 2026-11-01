@@ -945,3 +945,242 @@ h1, .center h2, .cap h2, .detail-title,
     font-size: .62rem;
   }
 }
+
+@media (max-width: 760px) {
+  .center {
+    padding: 28px 22px;
+  }
+
+  #welcome .center {
+    padding-top: calc(28px + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+  }
+
+  #welcome h1 {
+    font-size: clamp(2.8rem, 11vw, 4.8rem);
+    line-height: .96;
+    transform: none;
+  }
+
+  .hero-eyebrow {
+    margin-bottom: 14px;
+    letter-spacing: .12em;
+  }
+
+  .hero-intro {
+    max-width: 38ch;
+    font-size: 1rem;
+    line-height: 1.65;
+  }
+
+  .hero-footnote {
+    max-width: 38ch;
+    margin-top: 20px;
+    font-size: .58rem;
+    line-height: 1.8;
+    letter-spacing: .12em;
+  }
+
+  .btn {
+    min-height: 48px;
+    padding: 12px 22px;
+  }
+
+  .sub {
+    padding: calc(82px + env(safe-area-inset-top, 0px)) 22px
+      calc(36px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .sub h2 {
+    font-size: clamp(1.7rem, 8vw, 2.2rem);
+  }
+
+  .page-eyebrow {
+    font-size: .64rem;
+    letter-spacing: .12em;
+  }
+
+  .section-intro,
+  .about-copy {
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+
+  .post {
+    padding: 16px;
+  }
+
+  .back {
+    top: calc(10px + env(safe-area-inset-top, 0px));
+    min-height: 44px;
+    padding: 8px 18px;
+  }
+
+  .menu {
+    padding-top: calc(76px + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .menu button {
+    padding: 16px 4px;
+    font-size: clamp(1.7rem, 8vw, 2.4rem);
+  }
+
+  .menu button small {
+    margin-top: 4px;
+    font-size: .78rem;
+    line-height: 1.5;
+  }
+
+  .cap {
+    left: 18px;
+    right: 18px;
+    bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .cap h2 {
+    font-size: clamp(1.7rem, 8vw, 2.5rem);
+  }
+
+  .cap .tag {
+    max-width: calc(100% - 44px);
+    font-size: .68rem;
+    letter-spacing: .08em;
+  }
+
+  .project-dots {
+    top: 50%;
+    right: max(12px, env(safe-area-inset-right, 0px));
+    bottom: auto;
+    gap: 0;
+    transform: translateY(-50%);
+  }
+
+  .project-dot {
+    display: grid;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    background: transparent;
+    box-shadow: none;
+    opacity: 1;
+  }
+
+  .project-dot::before {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--mute);
+    box-shadow: 0 1px 5px rgba(20, 32, 46, .24);
+    content: "";
+    opacity: .6;
+  }
+
+  .project-dot[aria-current="step"]::before {
+    background: var(--acc);
+    opacity: 1;
+    transform: scale(1.55);
+  }
+
+  .project-dot[aria-current="step"] {
+    transform: none;
+  }
+
+  #project-detail-content {
+    padding: calc(76px + env(safe-area-inset-top, 0px)) 18px
+      calc(36px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .detail-layout {
+    gap: 20px;
+  }
+
+  .detail-stage {
+    height: min(46vh, 390px);
+    height: min(46svh, 390px);
+    min-height: 240px;
+    border-radius: 20px;
+  }
+
+  .detail-title {
+    font-size: clamp(2rem, 9vw, 3rem);
+  }
+
+  .detail-interaction-hint {
+    font-size: .8rem;
+  }
+
+  .detail-preview-downloads {
+    margin-top: 18px;
+  }
+
+  .detail-downloads {
+    gap: 10px;
+  }
+
+  .download-link {
+    min-height: 48px;
+    max-width: 100%;
+    padding: 10px 14px;
+    font-size: .9rem;
+  }
+
+  .asset-grid {
+    gap: 14px;
+  }
+
+  .asset-card {
+    padding: 16px;
+  }
+
+  .asset-stage {
+    height: min(42vh, 300px);
+    height: min(42svh, 300px);
+    min-height: 220px;
+  }
+}
+
+@media (max-width: 420px) {
+  .center {
+    padding-right: 18px;
+    padding-left: 18px;
+  }
+
+  #welcome h1 {
+    font-size: clamp(2.65rem, 11vw, 3.2rem);
+  }
+
+  .hero-footnote {
+    font-size: .54rem;
+    letter-spacing: .08em;
+  }
+
+  .cap {
+    left: 12px;
+    right: 12px;
+  }
+}
+
+@media (max-height: 520px) and (max-width: 900px) {
+  .center {
+    justify-content: flex-start;
+  }
+
+  #welcome .center {
+    padding-top: calc(18px + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  }
+
+  #welcome h1 {
+    margin-bottom: 12px;
+    font-size: clamp(2.4rem, 9vw, 3.4rem);
+  }
+
+  .hero-footnote {
+    margin-top: 12px;
+  }
+
+  .cap {
+    bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  }
+}
