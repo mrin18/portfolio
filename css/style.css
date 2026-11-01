@@ -615,8 +615,8 @@ h1, .center h2 {
 .detail-interaction-hint {
   margin: 12px 0 0;
   color: var(--mute);
-  font-size: .9rem;
-  text-align: center;
+  font-size: .78rem;
+  text-align: left;
 }
 .detail-kicker {
   color: var(--acc);
@@ -645,7 +645,7 @@ h1, .center h2 {
   margin-top: clamp(36px, 6vw, 72px);
 }
 .detail-preview-downloads {
-  margin-top: 24px;
+  margin-top: 14px;
 }
 .detail-preview-downloads > h2 {
   margin-bottom: 12px;
@@ -1182,5 +1182,161 @@ h1, .center h2, .cap h2, .detail-title,
 
   .cap {
     bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+.model-lightbox {
+  position: fixed;
+  inset: 0;
+  width: min(1100px, calc(100vw - 48px));
+  height: min(780px, calc(100dvh - 48px));
+  max-width: none;
+  max-height: none;
+  margin: auto;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 28px;
+  background: transparent;
+  color: var(--ink);
+  box-shadow: none;
+  transform-origin: top left;
+}
+
+.model-lightbox[open] {
+  display: flex;
+}
+
+.model-lightbox::backdrop {
+  background: rgba(15, 12, 24, .62);
+  opacity: 0;
+  backdrop-filter: blur(0);
+  transition: opacity 300ms ease, backdrop-filter 360ms ease;
+}
+
+.model-lightbox.is-open::backdrop {
+  opacity: 1;
+  backdrop-filter: blur(8px);
+}
+
+.model-lightbox-window {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  flex-direction: column;
+  padding: 0;
+}
+
+.model-lightbox-hint {
+  position: absolute;
+  right: 68px;
+  bottom: 14px;
+  left: 14px;
+  z-index: 4;
+  width: fit-content;
+  max-width: calc(100% - 96px);
+  margin: 0;
+  padding: 8px 12px;
+  border: 1px solid color-mix(in srgb, var(--line) 75%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--card) 90%, transparent);
+  color: var(--mute);
+  font: 400 .68rem/1.4 "IBM Plex Mono", monospace;
+  text-align: left;
+  pointer-events: none;
+  backdrop-filter: blur(8px);
+  opacity: 0;
+  transform: translateY(5px);
+  transition: opacity 150ms ease, transform 180ms ease;
+}
+
+.model-lightbox.is-open .model-lightbox-hint {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 90ms;
+}
+
+.model-lightbox-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 5;
+  display: grid;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 1.8rem/1 system-ui, sans-serif;
+}
+
+.model-lightbox-close:hover {
+  border-color: var(--acc);
+  color: var(--acc);
+}
+
+.model-lightbox-stage-slot {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  flex: 1;
+}
+
+.model-lightbox-placeholder {
+  flex: none;
+  visibility: hidden;
+}
+
+.model-lightbox .detail-stage {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  flex: 1;
+  border-radius: inherit;
+  touch-action: none;
+}
+
+.model-lightbox .detail-stage.asset-stage {
+  height: auto;
+  min-height: 0;
+  margin: 0;
+}
+
+@media (max-width: 760px) {
+  .model-lightbox {
+    width: calc(100vw - 24px);
+    height: min(84dvh, calc(100dvh - 32px));
+    min-height: min(260px, calc(100dvh - 32px));
+    border-radius: 22px;
+  }
+
+  .model-lightbox-close {
+    top: 10px;
+    right: 10px;
+  }
+
+  .model-lightbox-hint {
+    right: 62px;
+    bottom: 10px;
+    left: 10px;
+    max-width: calc(100% - 82px);
+    padding: 7px 10px;
+    font-size: .62rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .model-lightbox::backdrop {
+    transition-duration: 0s;
+    backdrop-filter: blur(0);
+  }
+
+  .model-lightbox-hint {
+    transition-duration: 0s;
   }
 }

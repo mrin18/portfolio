@@ -5,6 +5,132 @@
 const detailContent = document.getElementById('project-detail-content');
 const detailViewers = [];
 
+const modelLightbox = document.createElement('dialog');
+modelLightbox.className = 'model-lightbox';
+modelLightbox.setAttribute('aria-label', 'Expanded 3D model');
+
+const lightboxWindow = document.createElement('div');
+lightboxWindow.className = 'model-lightbox-window';
+
+const lightboxHint = document.createElement('p');
+lightboxHint.className = 'model-lightbox-hint';
+const lightboxClose = document.createElement('button');
+lightboxClose.className = 'model-lightbox-close';
+lightboxClose.type = 'button';
+lightboxClose.setAttribute('aria-label', 'Close expanded model');
+lightboxClose.textContent = '×';
+
+const lightboxStageSlot = document.createElement('div');
+lightboxStageSlot.className = 'model-lightbox-stage-slot';
+lightboxWindow.appendChild(lightboxStageSlot);
+modelLightbox.appendChild(lightboxWindow);
+document.body.appendChild(modelLightbox);
+modelLightbox.setAttribute('aria-label', 'Expanded 3D model viewer');
+lightboxHint.id = 'model-lightbox-hint';
+modelLightbox.setAttribute('aria-describedby', lightboxHint.id);
+
+let lightboxStage = null;
+let lightboxPlaceholder = null;
+let lightboxReturnFocus = null;
+let lightboxViewer = null;
+let lightboxClosing = false;
+
+function animateLightboxFrom(rect, close = false, onFinish) {
+  const duration = matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 360;
+  if (!duration) {
+    if (onFinish) onFinish();
+    return;
+  }
+
+  const target = modelLightbox.getBoundingClientRect();
+  const transform = `translate(${rect.left - target.left}px, ${rect.top - target.top}px) scale(${rect.width / target.width}, ${rect.height / target.height})`;
+  const animation = modelLightbox.animate(
+    close
+      ? [{ transform: 'none', opacity: 1 }, { transform, opacity: .82 }]
+      : [{ transform, opacity: .82 }, { transform: 'none', opacity: 1 }],
+    { duration, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'both' }
+  );
+  animation.onfinish = () => {
+    animation.cancel();
+    if (onFinish) onFinish();
+  };
+}
+
+function openModelLightbox(stage, viewer) {
+  if (modelLightbox.open || !stage.parentNode) return;
+
+  const startRect = stage.getBoundingClientRect();
+  lightboxPlaceholder = document.createElement('div');
+  lightboxPlaceholder.className = `${stage.className} model-lightbox-placeholder`;
+  lightboxPlaceholder.style.margin = getComputedStyle(stage).margin;
+  stage.parentNode.insertBefore(lightboxPlaceholder, stage);
+  lightboxStage = stage;
+  lightboxViewer = viewer;
+  setViewerLightboxMode(viewer, true);
+  lightboxReturnFocus = document.activeElement;
+  lightboxHint.textContent = viewer.p.kind === 'assembly'
+    ? 'Drag to rotate · Scroll to zoom · Click to explode / reassemble'
+    : 'Drag to rotate · Scroll to zoom';
+  stage.append(lightboxHint, lightboxClose);
+  modelLightbox.showModal();
+  lightboxStageSlot.appendChild(stage);
+
+  requestAnimationFrame(() => {
+    modelLightbox.classList.add('is-open');
+    animateLightboxFrom(startRect);
+    lightboxClose.focus({ preventScroll: true });
+  });
+}
+
+function closeModelLightbox() {
+  if (!modelLightbox.open || lightboxClosing || !lightboxStage || !lightboxPlaceholder) return;
+  lightboxClosing = true;
+  setViewerLightboxMode(lightboxViewer, false);
+  const endRect = lightboxPlaceholder.getBoundingClientRect();
+
+  const finishClose = () => {
+    modelLightbox.close();
+    lightboxPlaceholder.parentNode.replaceChild(lightboxStage, lightboxPlaceholder);
+    lightboxHint.remove();
+    lightboxClose.remove();
+    lightboxStage = null;
+    lightboxPlaceholder = null;
+    lightboxViewer = null;
+    modelLightbox.classList.remove('is-open');
+    lightboxClosing = false;
+    if (lightboxReturnFocus instanceof HTMLElement && lightboxReturnFocus.isConnected) {
+      lightboxReturnFocus.focus({ preventScroll: true });
+    }
+    lightboxReturnFocus = null;
+  };
+
+  modelLightbox.classList.remove('is-open');
+  animateLightboxFrom(endRect, true, finishClose);
+}
+
+lightboxClose.addEventListener('click', event => {
+  event.stopPropagation();
+  closeModelLightbox();
+});
+modelLightbox.addEventListener('wheel', event => {
+  if (!modelLightbox.open || !lightboxViewer || lightboxClosing) return;
+  event.preventDefault();
+  zoomViewer(lightboxViewer, event.deltaY);
+}, { passive: false });
+modelLightbox.addEventListener('keydown', event => {
+  if (event.key === 'Escape') {
+    event.preventDefault();
+    closeModelLightbox();
+  }
+});
+modelLightbox.addEventListener('cancel', event => {
+  event.preventDefault();
+  closeModelLightbox();
+});
+modelLightbox.addEventListener('click', event => {
+  if (event.target === modelLightbox) closeModelLightbox();
+});
+
 function addDetailText(parent, tagName, className, text) {
   const element = document.createElement(tagName);
   if (className) element.className = className;
@@ -49,7 +175,7 @@ function addAssetCard(parent, project, asset) {
     card.appendChild(stage);
     const viewer = makeView(stage, { ...project, ...asset, kind: 'single' });
     detailViewers.push(viewer);
-    attachModelInteraction(stage, viewer, stage, undefined, true);
+    attachModelInteraction(stage, viewer, stage, () => openModelLightbox(stage, viewer), true, true);
   }
 
   renderDownloads(card, asset);
@@ -71,7 +197,8 @@ function openProjectDetails(project) {
   preview.appendChild(stage);
   const mainViewer = makeView(stage, project);
   detailViewers.push(mainViewer);
-  attachModelInteraction(stage, mainViewer, stage, undefined, true);
+  attachModelInteraction(stage, mainViewer, stage, () => openModelLightbox(stage, mainViewer), true, true);
+  addDetailText(preview, 'p', 'detail-interaction-hint', 'Click or tap to expand · Drag to rotate');
   const projectDownloads = document.createElement('section');
   projectDownloads.className = 'detail-preview-downloads';
   renderDownloads(projectDownloads, project);
@@ -83,7 +210,6 @@ function openProjectDetails(project) {
   addDetailText(summary, 'h1', 'detail-title', project.name);
   addDetailText(summary, 'p', 'detail-tag', project.tag);
   addDetailText(summary, 'p', 'detail-description', project.text);
-  addDetailText(preview, 'p', 'detail-interaction-hint', 'Drag to rotate · Hover to explore');
 
   layout.append(preview, summary);
   detailContent.appendChild(layout);

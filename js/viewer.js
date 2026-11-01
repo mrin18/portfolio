@@ -10,6 +10,8 @@
 
 const views = [];   // keeps track of every 3D viewer on the page
 const MODEL_INTERACTION_RADIUS = 180;
+const MIN_MODEL_ZOOM = .6;
+const MAX_MODEL_ZOOM = 2.5;
 
 function isWithinModelRadius(el, event) {
   const bounds = el.getBoundingClientRect();
@@ -128,8 +130,10 @@ function makeView(el, p) {
     target: 0,
     sc: 1.25,         // current size
     scT: 1.25,        // target size
+    zoom: 1,
     spin: false,
     orbiting: false,
+    lightboxMode: false,
     pointerX: 0,
     pointerY: 0,
     vis: false,       // is this screen on the screen right now?
@@ -184,34 +188,69 @@ function setOn(v, on) {
   }
 }
 
-function attachModelInteraction(stage, v, activeElement = stage, onActivate, enableOrbit = false) {
+function setViewerLightboxMode(v, enabled) {
+  v.lightboxMode = enabled;
+  v.on = false;
+  v.spin = false;
+  v.t = 0;
+  v.target = 0;
+  v.sc = 1.25;
+  v.scT = 1.25;
+  v.zoom = 1;
+}
+
+function zoomViewer(v, deltaY) {
+  const zoomFactor = Math.exp(-deltaY * .001);
+  v.zoom = Math.max(MIN_MODEL_ZOOM, Math.min(MAX_MODEL_ZOOM, v.zoom * zoomFactor));
+}
+
+function toggleAssemblyExplode(v) {
+  if (v.p.kind !== 'assembly') return;
+  v.spin = false;
+  v.on = false;
+  v.target = v.target > .5 ? 0 : 1;
+}
+
+function attachModelInteraction(stage, v, activeElement = stage, onActivate, enableOrbit = false, activateAnywhere = false) {
+  let orbitMoved = false;
+  let suppressClickUntil = 0;
+
   if (enableOrbit) {
     stage.classList.add('orbit-enabled');
     stage.addEventListener('pointerdown', e => {
-      if (e.pointerType !== 'mouse' || e.button !== 0) return;
+      if (e.target instanceof Element && e.target.closest('button')) return;
+      if ((e.pointerType === 'mouse' && e.button !== 0)
+        || (e.pointerType !== 'mouse' && e.pointerType !== 'touch' && e.pointerType !== 'pen')) return;
       v.orbiting = true;
+      orbitMoved = false;
       v.pointerX = e.clientX;
       v.pointerY = e.clientY;
       stage.setPointerCapture(e.pointerId);
       stage.classList.add('orbiting');
     });
     stage.addEventListener('pointermove', e => {
-      if (!v.orbiting || e.pointerType !== 'mouse') return;
-      v.holder.rotation.y += (e.clientX - v.pointerX) * .01;
-      v.holder.rotation.x += (e.clientY - v.pointerY) * .01;
+      if (!v.orbiting) return;
+      const dx = e.clientX - v.pointerX;
+      const dy = e.clientY - v.pointerY;
+      if (Math.abs(dx) + Math.abs(dy) > 3) orbitMoved = true;
+      v.holder.rotation.y += dx * .01;
+      v.holder.rotation.x += dy * .01;
       v.pointerX = e.clientX;
       v.pointerY = e.clientY;
     });
     const stopOrbit = e => {
       if (!v.orbiting) return;
       v.orbiting = false;
+      if (orbitMoved) suppressClickUntil = performance.now() + 500;
       stage.classList.remove('orbiting');
       if (stage.hasPointerCapture(e.pointerId)) {
         stage.releasePointerCapture(e.pointerId);
       }
-      const active = isWithinModelRadius(stage, e);
-      activeElement.classList.toggle('model-active', active);
-      setOn(v, active);
+      if (!v.lightboxMode) {
+        const active = isWithinModelRadius(stage, e);
+        activeElement.classList.toggle('model-active', active);
+        setOn(v, active);
+      }
     };
     stage.addEventListener('pointerup', stopOrbit);
     stage.addEventListener('pointercancel', stopOrbit);
@@ -219,20 +258,28 @@ function attachModelInteraction(stage, v, activeElement = stage, onActivate, ena
   }
 
   stage.addEventListener('pointermove', e => {
-    if (e.pointerType === 'mouse' && !v.orbiting) {
+    if (!v.lightboxMode && e.pointerType === 'mouse' && !v.orbiting) {
       const active = isWithinModelRadius(stage, e);
       activeElement.classList.toggle('model-active', active);
       setOn(v, active);
     }
   });
   stage.addEventListener('pointerleave', e => {
-    if (e.pointerType === 'mouse' && !v.orbiting) {
+    if (!v.lightboxMode && e.pointerType === 'mouse' && !v.orbiting) {
       activeElement.classList.remove('model-active');
       setOn(v, false);
     }
   });
   stage.addEventListener('click', e => {
-    if (!isWithinModelRadius(stage, e)) return;
+    if (performance.now() < suppressClickUntil) {
+      suppressClickUntil = 0;
+      return;
+    }
+    if (v.lightboxMode) {
+      toggleAssemblyExplode(v);
+      return;
+    }
+    if (!activateAnywhere && !isWithinModelRadius(stage, e)) return;
     if (onActivate) {
       onActivate();
     } else if (e.pointerType !== 'mouse') {
@@ -256,7 +303,7 @@ function attachModelInteraction(stage, v, activeElement = stage, onActivate, ena
         obj.position.copy(obj.userData.home).addScaledVector(obj.userData.ex, v.t);
       }
     });
-    v.holder.scale.setScalar(v.sc);
+    v.holder.scale.setScalar(v.sc * v.zoom);
     if (v.spin) v.holder.rotation.y += .012;
 
     v.renderer.render(v.scene, v.cam);
